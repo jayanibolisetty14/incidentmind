@@ -80,19 +80,6 @@ During investigation, IncidentMind sends the current incident context to Hindsig
 
 Hindsight memories are evidence and hypotheses, not guaranteed diagnoses. Current evidence must be checked before an action is approved.
 
-### Hindsight Configuration
-
-Copy `.env.example` to `.env` and configure the Hindsight deployment:
-
-```dotenv
-HINDSIGHT_API_URL=http://localhost:8888
-HINDSIGHT_API_KEY=your-api-key
-HINDSIGHT_BANK_ID=incidentmind
-HINDSIGHT_TIMEOUT_SECONDS=15
-```
-
-`HINDSIGHT_API_URL` is required. `HINDSIGHT_API_KEY` is passed to the client and is required by Hindsight deployments that authenticate requests. `HINDSIGHT_BANK_ID` defaults to `incidentmind`. `HINDSIGHT_TIMEOUT_SECONDS` defaults to 15 seconds and limits each client request.
-
 IncidentMind reports `HINDSIGHT: CONNECTED` only after a real Hindsight request succeeds. It provisions or updates the configured bank through the Hindsight client before memory operations. Never commit a real API key.
 
 ## What Makes IncidentMind Different
@@ -196,7 +183,7 @@ Backend-owned demo telemetry is explicitly labelled `DEMO / SIMULATED TELEMETRY`
 
 ### Historical Pattern: INC-001
 
-The historical operational memory describes a related Payment API failure involving:
+Hindsight operational memory contains a related Payment API incident involving:
 
 - HTTP 500 errors
 - recent deployment
@@ -204,8 +191,15 @@ The historical operational memory describes a related Payment API failure involv
 - timeout errors
 - high latency
 
-The historical resolution was to roll back the deployment and restore the connection pool. IncidentMind must compare the current evidence with this historical evidence before making a recommendation; it must not assume that `INC-019` has the same root cause.
+The historical incident records a resolution involving rollback of the deployment and restoration of the connection pool.
 
+IncidentMind does **not** treat this historical resolution as proof that INC-019 has the same root cause. Instead, it recalls the historical incident and compares its evidence with the current incident's telemetry and investigation findings.
+
+The resulting recommendation is therefore based on:
+
+**Current evidence + Relevant historical memory**
+
+and remains subject to **human approval** before simulated recovery is performed.
 ### Similar Future Incident
 
 `POST /api/incidents/simulate-similar` creates `INC-020` only after an explicit user action. Repeating the action returns the existing incident instead of creating a duplicate. The new incident can then be investigated and used to demonstrate future recall.
@@ -367,25 +361,3 @@ IncidentMind is a prototype demonstrating AI-assisted incident investigation wit
 
 Simulated recovery metrics are demonstration data and do not represent real production telemetry. AI investigation results and recalled historical knowledge are hypotheses that should be verified by an engineer before operational use.
 
-## Limitations
-
-- Hindsight requires a reachable configured service for recall, reflection, and retention.
-- External production observability integrations are not assumed; the included telemetry is simulated demo data.
-- Recovery actions in the demonstration environment are simulated.
-- AI investigation results require human verification.
-- The prototype does not automatically execute unrestricted production changes.
-- Production deployment would require authentication, authorization, audit logging, observability integrations, security controls, and operational safeguards.
-
-## Future Scope
-
-Potential future integrations include:
-
-- Prometheus, Grafana, or Cloud monitoring platforms
-- CI/CD deployment systems
-- Incident alerting platforms
-- Service dependency maps
-- Automated runbook discovery
-- Richer post-mortem generation
-- Role-based access control
-- Audit trails
-- Production-safe action integrations
