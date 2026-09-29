@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IncidentMind | Incident Response Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand-lockup">
+            <div class="brand-mark">IM</div>
+            <div><strong>IncidentMind</strong><span>AI Incident Response</span></div>
+        </div>
+        <div class="topbar-status">
+            <span class="status-indicator"><i></i> SYSTEM OPERATIONAL</span>
+            <span class="hindsight-status" id="hindsightStatus">HINDSIGHT: OFFLINE</span>
+            <span class="clock" id="currentTime">--:--</span>
+            <span class="operator-avatar" aria-label="Operator">OP</span>
+        </div>
+    </header>
+
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <p class="sidebar-label">OVERVIEW</p>
+                <button class="nav-button active" data-target="#pageTop"><span>⌂</span>Command Center</button>
+                <button class="nav-button" data-target="#activeIncident"><span>⌁</span>Investigate</button>
+                <button class="nav-button" data-target="#incidentHistorySection"><span>≡</span>Incident History</button>
+                <button class="nav-button" data-target="#memoryVault"><span>◈</span>Memory Vault</button>
+                <button class="nav-button" data-target="#analytics"><span>◌</span>Analytics</button>
+            </div>
+            <div class="sidebar-section">
+                <p class="sidebar-label">OPERATIONS</p>
+                <button class="nav-button" data-target="#activeIncident"><span>!</span>Active Incidents</button>
+                <button class="nav-button" data-target="#serviceHealth"><span>◫</span>Services</button>
+                <button class="nav-button" data-target="#postmortem"><span>↗</span>Runbooks</button>
+            </div>
+            <div class="sidebar-section">
+                <p class="sidebar-label">KNOWLEDGE</p>
+                <button class="nav-button" data-target="#memoryVault"><span>◇</span>Hindsight Memory</button>
+                <button class="nav-button" data-target="#postmortem"><span>□</span>Post-Mortems</button>
+            </div>
+        </aside>
+
+        <main class="main" id="pageTop">
+            <section class="page-header">
+                <div>
+                    <p class="eyebrow">INCIDENTMIND / COMMAND CENTER</p>
+                    <h1>AI Incident Response Command Center</h1>
+                    <p class="subtitle">Persistent operational memory for explainable, human-led response.</p>
+                </div>
+                <div class="header-actions"><button class="secondary-button" type="button" onclick="loadDemoIncident()">LOAD DEMO INCIDENT</button><button class="primary-button" type="button" onclick="openIncidentForm()"><span>+</span> NEW INCIDENT</button></div>
+            </section>
+
+            <section class="workflow-strip" aria-label="Incident response workflow">
+                <div class="workflow-step active"><span>01</span><strong>DETECT</strong></div><b></b>
+                <div class="workflow-step"><span>02</span><strong>TRIAGE</strong></div><b></b>
+                <div class="workflow-step"><span>03</span><strong>RECALL</strong></div><b></b>
+                <div class="workflow-step"><span>04</span><strong>APPROVE</strong></div><b></b>
+                <div class="workflow-step"><span>05</span><strong>RECOVER</strong></div><b></b>
+                <div class="workflow-step"><span>06</span><strong>LEARN</strong></div>
+            </section>
+
+            <section class="summary-grid">
+                <div class="summary-card"><span>ACTIVE INCIDENTS</span><strong id="activeCount">--</strong><small>SQLite records</small></div>
+                <div class="summary-card"><span>RESOLVED INCIDENTS</span><strong id="resolvedCount">--</strong><small>Recorded outcomes</small></div>
+                <div class="summary-card cyan"><span>HISTORICAL MATCHES</span><strong id="memoryMatch">--</strong><small>Latest Hindsight recall</small></div>
+            </section>
+
+            <section class="panel incident-hero" id="activeIncident">
+                <div class="panel-heading">
+                    <div>
+                        <div class="status-row">
+                            <p class="eyebrow critical-text" id="incidentStatusLabel">NO ACTIVE INCIDENT</p>
+                            <span class="status-badge resolved-badge" id="incidentResolvedBadge" style="display: none;">✓ RESOLVED</span>
+                        </div>
+                        <h2 id="incidentTitle">No active incident</h2>
+                    </div>
+                    <span class="severity" id="incidentSeverity">N/A</span>
+                </div>
+                <div class="hero-description"><span class="hero-icon" id="heroIcon">!</span><p id="incidentDescription">Create or select an active incident to begin.</p></div>
+                <div class="incident-meta" id="incidentMetaGrid">
+                    <div><span>INCIDENT ID</span><strong class="mono" id="incidentId">N/A</strong></div>
+                    <div><span>AFFECTED SERVICE</span><strong id="incidentService">N/A</strong></div>
+                    <div><span>DEPLOYMENT</span><strong class="mono" id="incidentDeployment">N/A</strong></div>
+                    <div><span>DETECTION TIME</span><strong class="mono" id="incidentDetection">N/A</strong></div>
+                    <div id="resolutionTimeBlock" style="display: none;"><span>RESOLUTION TIME</span><strong class="mono" id="incidentResolution">N/A</strong></div>
+                </div>
+                <div class="hero-actions" id="heroActions"><button class="primary-button recall-button" id="primaryHeroButton" type="button" disabled onclick="investigate()">INVESTIGATE</button><button class="secondary-button" id="secondaryHeroButton" type="button" onclick="viewIncidentDetails()">VIEW DETAILS</button></div>
+            </section>
+
+            <section class="panel" id="serviceHealth">
+                <div class="panel-heading"><div><p class="eyebrow">OBSERVABILITY</p><h2>Service Health</h2></div><span class="data-badge" id="telemetrySource">DEMO / SIMULATED TELEMETRY</span></div>
+                <div class="health-grid">
+                    <div class="metric-card"><span>ERROR RATE</span><strong>--</strong><small>Loading selected service...</small><div class="metric-line"><i></i></div></div>
+                </div>
+            </section>
+
+            <section class="split-grid">
+                <article class="panel evidence-panel">
+                    <div class="panel-heading"><div><p class="eyebrow">TRIAGE INPUT</p><h2>Current Evidence</h2></div><span class="data-badge">FROM INCIDENT</span></div>
+                    <div id="currentEvidence" class="evidence-list"><p class="empty-state">Select an incident to review observed symptoms.</p></div>
+                </article>
+                <article class="panel hindsight-panel">
+                    <div class="panel-heading"><div><p class="eyebrow cyan-text">HINDSIGHT MEMORY</p><h2>Similar Incidents</h2></div><div><span class="memory-badge">MEMORY LAYER</span><button class="secondary-button inline-button" id="recallMemoryButton" type="button" onclick="recallMemory()">RECALL MEMORY</button></div></div>
+                    <div id="memoryResults"><div class="empty-state"><div class="empty-icon">◇</div><h3>No investigation performed</h3><p>Run an investigation to retrieve relevant operational memory.</p></div></div>
+                </article>
+            </section>
+
+            <section class="panel comparison-panel">
+                <div class="panel-heading"><div><p class="eyebrow cyan-text">EVIDENCE REVIEW</p><h2>Current vs Historical Evidence</h2></div><span class="data-badge muted-badge" id="evidenceReviewBadge">WAITING FOR RECALL</span></div>
+                <div class="comparison-grid"><div><span>CURRENT INCIDENT</span><p id="currentComparison">No current evidence loaded.</p></div><div><span>HISTORICAL INCIDENT</span><p id="historicalComparison">No Hindsight memory recalled.</p></div></div>
+                <div class="comparison-summary"><div><span>MATCHING SIGNALS</span><strong id="matchingEvidence">--</strong></div><div><span>CONFLICTING EVIDENCE</span><strong id="conflictingEvidence">--</strong></div><div><span>HISTORICAL RELEVANCE</span><strong id="historicalRelevance">--</strong></div></div>
+            </section>
+
+            <section class="panel memory-impact-panel">
+                <div class="panel-heading"><div><p class="eyebrow cyan-text">MEMORY IMPACT</p><h2>Investigation With and Without Memory</h2></div><span class="data-badge">OPERATIONAL LEARNING</span></div>
+                <div class="impact-grid"><div><span>WITHOUT MEMORY</span><p>Current incident only</p><p>No historical context</p><p>Investigation starts from current evidence</p></div><div><span>WITH HINDSIGHT MEMORY</span><p>Previous incident</p><p>Root cause and evidence</p><p>Resolution, outcome, and lesson learned</p></div></div>
+            </section>
+
+            <section class="panel analysis-panel">
+                <div class="panel-heading"><div><p class="eyebrow cyan-text">AI INVESTIGATION</p><h2>Explainable Investigation</h2></div><span class="ai-badge">EVIDENCE-BASED</span></div>
+                <div class="analysis-grid">
+                    <div class="analysis-card"><span class="card-label">POSSIBLE ROOT CAUSE</span><h3 id="rootCause">Waiting for investigation...</h3><p id="rootCauseText">A possible pattern will appear after Hindsight recall.</p></div>
+                    <div class="analysis-card"><span class="card-label">RECOMMENDED ACTION</span><h3 id="recommendedFix">Waiting for investigation...</h3><p id="recommendedFixText">Recommendations remain hypotheses until reviewed.</p></div>
+                    <div class="analysis-card"><span class="card-label">HISTORICAL LESSON</span><h3 id="historicalLesson">Waiting for investigation...</h3><p id="historicalLessonText">Lessons from retained outcomes will appear here.</p></div>
+                    <div class="analysis-card"><span class="card-label">CONFIDENCE / RELEVANCE</span><h3 id="analysisConfidence">Waiting for investigation...</h3><p>Relevance is not a guarantee; verify current evidence before action.</p></div>
+                </div>
+                <div id="analysisExplanation" class="analysis-explanation"><h3>Why this fits</h3><p>Run Recall to see the evidence behind a historical hypothesis.</p></div>
+            </section>
+
+            <section class="panel recommendation-panel">
+                <div class="panel-heading"><div><p class="eyebrow warning-text">HUMAN APPROVAL GATE</p><h2>Recommendation Review</h2></div><span class="approval-badge" id="approvalBadge">AWAITING REVIEW</span></div>
+                <p class="recommendation-copy">AI recommendations are hypotheses. A human operator must review the evidence before any response is recorded.</p>
+                <div class="approval-actions"><button class="primary-button" id="approveActionButton" type="button" disabled onclick="approveAction()">APPROVE ACTION</button><button class="danger-button" id="rejectActionButton" type="button" disabled onclick="rejectAction()">REJECT</button></div>
+            </section>
+
+            <section class="panel timeline-panel">
+                <div class="panel-heading"><div><p class="eyebrow">RESPONSE TRACE</p><h2>Incident Timeline</h2></div></div>
+                <div class="timeline" id="incidentTimeline"><div class="timeline-item current"><i></i><div><strong>Incident detected</strong><span>Awaiting incident selection</span></div></div></div>
+            </section>
+
+            <section class="split-grid">
+                <section class="panel recovery-panel"><div class="panel-heading"><div><p class="eyebrow success-text">RECOVERY</p><h2>Simulated Recovery</h2></div><span class="data-badge" id="recoveryBadge">DEMO METRICS ONLY</span></div><div id="recoveryContent" class="empty-state"><h3 id="recoveryHeading">Awaiting approved action</h3><p>Recovery metrics will appear only after a human-approved simulated response.</p></div><button class="primary-button" id="runRecoveryButton" type="button" disabled onclick="runRecovery()">RUN SIMULATED RECOVERY</button></section>
+                <section class="panel" id="postmortem"><div class="panel-heading"><div><p class="eyebrow">LEARNING LOOP</p><h2>Post-Mortem</h2></div><span class="data-badge muted-badge" id="postmortemBadge">NOT GENERATED</span></div><div id="postmortemContent" class="postmortem-grid"><span>Impact</span><span>Root Cause</span><span>Resolution</span><span>What Worked</span><span>What Did Not Work</span><span>Recommended Follow-up</span></div><button class="secondary-button" id="createPostmortemButton" type="button" disabled onclick="createPostmortem()">GENERATE POST-MORTEM</button><button class="primary-button" id="retainButton" type="button" disabled onclick="retainKnowledge()">RETAIN KNOWLEDGE</button><button class="secondary-button" id="simulateSimilarButton" type="button" onclick="simulateSimilarIncident()">SIMULATE SIMILAR INCIDENT</button></section>
+            </section>
+
+            <section class="panel feedback-panel">
+                <div class="panel-heading"><div><p class="eyebrow">OUTCOME RECORD</p><h2>Record Verified Outcome</h2></div><span class="data-badge">HINDSIGHT RETENTION</span></div>
+                <p class="panel-copy">Record what happened after the response so IncidentMind can retain verified operational knowledge.</p>
+                <textarea id="outcomeNotes" class="outcome-notes" placeholder="Add notes about the verified outcome..."></textarea>
+                <div class="feedback-actions"><button class="success-button" type="button" disabled onclick="submitOutcome('success')">FIX WORKED</button><button class="failure-button" type="button" disabled onclick="submitOutcome('failure')">FIX FAILED</button></div>
+                <p id="outcomeMessage" class="outcome-message"></p>
+            </section>
+
+            <section class="panel history-panel" id="incidentHistorySection">
+                <div class="panel-heading"><div><p class="eyebrow">OPERATIONS</p><h2>Incident History</h2></div><span class="data-badge">SQLITE</span></div>
+                <div id="incidentHistory"><div class="empty-state">Loading incident history...</div></div>
+            </section>
+
+            <section class="panel memory-vault" id="memoryVault">
+                <div class="panel-heading"><div><p class="eyebrow cyan-text">KNOWLEDGE</p><h2>Hindsight Memory Vault</h2></div><button class="secondary-button" type="button" onclick="loadMemoryVault()">REFRESH</button></div>
+                <div class="vault-stats"><div><span>RETRIEVED</span><strong id="vaultTotal">--</strong></div><div><span>SUCCESSFUL RETAINS</span><strong id="vaultSuccess">--</strong></div><div><span>FAILED OPERATIONS</span><strong id="vaultFailure">--</strong></div></div>
+                <div id="memoryVaultResults" class="vault-list">Loading Hindsight memories...</div>
+            </section>
+
+            <section class="panel analytics-panel" id="analytics">
+                <div class="panel-heading"><div><p class="eyebrow">OPERATIONS</p><h2>Analytics</h2></div><span class="data-badge">DATABASE + MEMORY</span></div>
+                <div class="analytics-grid"><div><span>TOTAL INCIDENTS</span><strong id="analyticsTotal">--</strong></div><div><span>RESOLVED</span><strong id="analyticsResolved">--</strong></div><div><span>FAILED</span><strong id="analyticsFailed">--</strong></div><div><span>MOST AFFECTED SERVICE</span><strong id="analyticsService">--</strong></div><div><span>MOST COMMON FAILURE</span><strong id="analyticsFailure">--</strong></div><div><span>LATEST MEMORY MATCHES</span><strong id="analyticsMatches">--</strong></div></div>
+                <p id="analyticsError" class="outcome-message"></p>
+            </section>
+        </main>
+    </div>
+
+    <div id="incidentModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-content">
+            <div class="modal-header"><div><p class="eyebrow">INCIDENT INTAKE</p><h2 id="modalTitle">New Incident</h2></div><button class="icon-button" type="button" onclick="closeIncidentForm()" aria-label="Close">&times;</button></div>
+            <label for="newTitle">Title</label><input id="newTitle" required placeholder="API latency spike">
+            <label for="newDescription">Description</label><textarea id="newDescription" required placeholder="Describe the observed symptoms, errors, affected behavior, and anything noticed before the incident."></textarea>
+            <label for="newService">Affected service</label><input id="newService" required placeholder="payment-api">
+            <label for="newSeverity">Severity</label><select id="newSeverity" required><option selected>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+            <label for="newDeployment">Deployment</label><input id="newDeployment" required placeholder="v2.4.1">
+            <p id="incidentFormError" class="outcome-message" role="alert"></p>
+            <div class="modal-actions"><button class="secondary-button" type="button" onclick="closeIncidentForm()">CANCEL</button><button class="primary-button" type="button" onclick="createIncident()">CREATE INCIDENT</button></div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
